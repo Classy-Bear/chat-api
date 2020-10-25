@@ -1,105 +1,92 @@
-const api_fetcher = require('./api/api_fetcher');
-const getType = require('jest-get-type');
+const apiFetcher = require('./api/api_fetcher');
 
-beforeAll(() => console.log('Testing `/message` API 🔨 ...'));
-
-let uuid_pepito;
-let user_pepito;
-
-let uuid_maria;
-let user_maria;
-
-const messages_uuid = [];
-const messages = [];
-
-describe('Lets create two users (Pepito and Maria) before sending some messages.', () => {
-	test('The user created should be Pepito.', async () => {
-		const data = await api_fetcher.createUser('Pepito');
-		uuid_pepito = data['uuid'];
-		user_pepito = data['user'];
-		expect(data['user']).toEqual('Pepito');
-	});
-
-	test('The user created should be Maria.', async () => {
-		const data = await api_fetcher.createUser('Maria');
-		uuid_maria = data['uuid'];
-		user_maria = data['user'];
-		expect(data['user']).toEqual('Maria');
-	});
+describe('message test.', () => {
+  console.log('Testing `/message` endpoint 🔨 ...');
+  let pepitoID;
+  let mariaID;
+  const idOfMessages = [];
+  const messages = [];
+  describe('lets create two users (Pepito and Maria) before sending some messages.', () => {
+    it('the user created should be Pepito.', async () => {
+      expect.hasAssertions();
+      const data = await apiFetcher.createUser('Pepito');
+      pepitoID = data.id;
+      expect(data.user).toStrictEqual('Pepito');
+    });
+    it('the user created should be Maria.', async () => {
+      expect.hasAssertions();
+      const data = await apiFetcher.createUser('Maria');
+      mariaID = data.id;
+      expect(data.user).toStrictEqual('Maria');
+    });
+  });
+  describe('send some meesages between Pepito and Maria.', () => {
+    it('pepito sends "Hola" to Maria.', async () => {
+      expect.hasAssertions();
+      const data = await apiFetcher.sendMessage('Hola', pepitoID, mariaID);
+      idOfMessages.push(data.id);
+      messages.push(data.message);
+      expect(data.message).toStrictEqual('Hola');
+    });
+    it('pepito sends "Como estas?" to Maria.', async () => {
+      expect.hasAssertions();
+      const data = await apiFetcher.sendMessage(
+        'Como estas?',
+        pepitoID,
+        mariaID,
+      );
+      idOfMessages.push(data.id);
+      messages.push(data.message);
+      expect(data.message).toStrictEqual('Como estas?');
+    });
+    it('maria sends "Muy bien" to Pepito.', async () => {
+      expect.hasAssertions();
+      const data = await apiFetcher.sendMessage(
+        'Muy bien',
+        mariaID,
+        pepitoID,
+      );
+      idOfMessages.push(data.id);
+      messages.push(data.message);
+      expect(data.message).toStrictEqual('Muy bien');
+    });
+  });
+  describe('gET all messages and confirm if all 3 have been created.', () => {
+    it('all messages should be return as type array.', async () => {
+      expect.hasAssertions();
+      const data = await apiFetcher.getAll('messages');
+      expect(Array.isArray(data)).toStrictEqual(true);
+    });
+    it('confirm messages is being sended.', async () => {
+      expect.hasAssertions();
+      const message = await apiFetcher.getById(
+        'messages',
+        idOfMessages[0],
+      );
+      expect(messages).toContain(message.message);
+    });
+  });
+  describe('delete all 3 messages that have been created.', () => {
+    it('delete all 3 message', async () => {
+      expect.hasAssertions();
+      const message0 = await apiFetcher.delete('messages', idOfMessages[0]);
+      expect(message0.msg).toStrictEqual('Mensajes eliminados exitosamente.');
+      const message1 = await apiFetcher.delete('messages', idOfMessages[1]);
+      expect(message1.msg).toStrictEqual('Mensajes eliminados exitosamente.');
+      const message2 = await apiFetcher.delete('messages', idOfMessages[2]);
+      expect(message2.msg).toStrictEqual('Mensajes eliminados exitosamente.');
+    });
+  });
+  describe('delete Pepito and Maria from the users database.', () => {
+    it('delete Pepito', async () => {
+      expect.hasAssertions();
+      const user = await apiFetcher.delete('users', pepitoID);
+      expect(user.id).toStrictEqual(pepitoID);
+    });
+    it('delete Maria', async () => {
+      expect.hasAssertions();
+      const user = await apiFetcher.delete('users', mariaID);
+      expect(user.id).toStrictEqual(mariaID);
+    });
+  });
 });
-
-describe('Send some meesages between Pepito and Maria.', () => {
-	test('Pepito sends "Hola" to Maria.', async () => {
-		const data = await api_fetcher.sendMessage('Hola', uuid_pepito, uuid_maria);
-		messages_uuid.push(data['uuid']);
-		messages.push(data['message']);
-		expect(data['message']).toEqual('Hola');
-	});
-
-	test('Pepito sends "Como estas?" to Maria.', async () => {
-		const data = await api_fetcher.sendMessage('Como estas?', uuid_pepito, uuid_maria);
-		messages_uuid.push(data['uuid']);
-		messages.push(data['message']);
-		expect(data['message']).toEqual('Como estas?');
-	});
-
-	test('Maria sends "Muy bien" to Pepito.', async () => {
-		const data = await api_fetcher.sendMessage('Muy bien', uuid_maria, uuid_pepito);
-		messages_uuid.push(data['uuid']);
-		messages.push(data['message']);	
-		expect(data['message']).toEqual('Muy bien');
-	});
-});
-
-describe('GET all messages and confirm if all 3 have been created.', () => {
-	test('All messages should be return as type array.', async () => {
-		const data = await api_fetcher.getAll('messages');
-		expect(getType(data)).toEqual('array');
-	});
-
-	test('Confirm messages is being sended.', async () => {
-		const message = await api_fetcher.getById('messages/getMessage', messages_uuid[0]);
-		expect(messages).toContain(message['message']);
-	});
-});
-
-describe('Delete all 3 messages that have been created.', () => {
-	test('Delete 1st message', async () => {
-		const message = await api_fetcher.delete('messages', messages_uuid[0]);
-		expect(message['msg']).toEqual('Mensajes eliminados exitosamente.');
-	});
-
-	test('Delete 2nd message', async () => {
-		const message = await api_fetcher.delete('messages', messages_uuid[1]);
-		expect(message['msg']).toEqual('Mensajes eliminados exitosamente.');
-	});
-
-	test('Delete 3rd message', async () => {
-		const message = await api_fetcher.delete('messages', messages_uuid[2]);
-		expect(message['msg']).toEqual('Mensajes eliminados exitosamente.');
-	});
-}); 
-
-describe('Delete Pepito and Maria from the users database.', () => {
-	test('Delete Pepito', async () => {
-		const user = await api_fetcher.delete('users', uuid_pepito);
-		expect(user['uuid']).toEqual(uuid_pepito);
-	});
-	test('Delete Pepito', async () => {
-		const user = await api_fetcher.delete('users', uuid_maria);
-		expect(user['uuid']).toEqual(uuid_maria);
-	});
-});
-
-afterAll(() => console.log('All tests has finished 🙌 ...'));
-
-
-// TODOS
-// [ ] 1. Add assertions, async tests may fail.
-//				If you expect a promise to be rejected, use the `.catch` method.
-//				Make sure to add `expect.assertions`` to verify that a certain number of 
-//				assertions are called. Otherwise a fulfilled promise would not fail the test.
-//				url => https://jestjs.io/docs/en/asynchronous
-// [ ] 2. Make sure the user is properly deleted. 
-//				After deleting Jose, check for Jose again in the database. This API call should fail,
-// 				so complete the first step after doing this one.
