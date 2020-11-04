@@ -1,7 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
-const https = require('https');
 const db = require('./modules/config/databse');
 const usersAPI = require('./modules/routes/api/users');
 const messagesAPI = require('./modules/routes/api/messages');
@@ -19,6 +17,6 @@ const messagesAPI = require('./modules/routes/api/messages');
   app.get('/', (req, res) => res.json({ authKey: 'incorrect' }));
   app.use('/users', usersAPI);
   app.use('/messages', messagesAPI);
-  const port = 5000;
+  const port = process.env.PORT || 5000;
   app.listen(port);
 })();
