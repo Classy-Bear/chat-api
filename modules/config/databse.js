@@ -1,15 +1,7 @@
 const Sequelize = require('sequelize');
 
-let user = 'postgres';
-let db = 'postgres';
-const host = 'localhost';
-const args = process.argv.slice(2);
-const [firstArg, secondArg] = args;
-if (firstArg) user = firstArg;
-if (secondArg) db = secondArg;
-
 module.exports = new Sequelize(
-  `postgres://${user}@${host}:5432/${db}`,
+  process.env.DATABASE_URL,
   {
     define: {
       // don't add the timestamp attributes (updatedAt, createdAt)
