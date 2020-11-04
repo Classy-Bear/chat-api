@@ -1,1 +1,1 @@
-web: node index.js lfvygyppbvhrvz d404bfudbdkgn2
+web: node index.js
