@@ -1,1 +1,1 @@
-# JavaScript Chat REST API in Node.js
+# ChatApp REST API in Node.js

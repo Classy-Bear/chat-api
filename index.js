@@ -10,13 +10,13 @@ const messagesAPI = require('./modules/routes/api/messages');
   } catch {
     return;
   }
-  const app = express();
-  app.use(cors());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: false }));
-  app.get('/', (req, res) => res.json({ authKey: 'incorrect' }));
-  app.use('/users', usersAPI);
-  app.use('/messages', messagesAPI);
   const port = process.env.PORT || 5000;
-  app.listen(port);
+  express()
+    .use(cors())
+    .use(express.json())
+    .use(express.urlencoded({ extended: false }))
+    .get('/', (req, res) => res.json({ authKey: 'incorrect' }))
+    .use('/users', usersAPI)
+    .use('/messages', messagesAPI)
+    .listen(port);
 })();
