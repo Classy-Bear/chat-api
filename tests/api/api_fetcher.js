@@ -5,7 +5,7 @@ const instance = axios.create({
   timeout: 5000,
 });
 
-const apiFetcher = {
+module.exports = {
   getAll: (route) => instance.get(`/${route}`)
     .then((res) => res.data)
     .catch((error) => error),
@@ -26,4 +26,4 @@ const apiFetcher = {
     .catch((error) => error),
 };
 
-module.exports = apiFetcher;
+/// TODO Remove redundancy

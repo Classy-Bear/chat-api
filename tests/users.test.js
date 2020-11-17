@@ -1,7 +1,6 @@
 const apiFetcher = require('./api/api_fetcher');
 
-describe('user test', () => {
-  console.log('Testing `/users` endpoint 🔨 ...');
+describe('testing `/users` endpoint 🔨 ...', () => {
   let id;
   let user;
   describe('testing POST request...', () => {

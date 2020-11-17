@@ -1,7 +1,6 @@
 const apiFetcher = require('./api/api_fetcher');
 
-describe('message test.', () => {
-  console.log('Testing `/message` endpoint 🔨 ...');
+describe('testing `/message` endpoint 🔨 ....', () => {
   let pepitoID;
   let mariaID;
   const idOfMessages = [];
@@ -51,7 +50,7 @@ describe('message test.', () => {
       expect(data.message).toStrictEqual('Muy bien');
     });
   });
-  describe('gET all messages and confirm if all 3 have been created.', () => {
+  describe('get all messages and confirm if all 3 have been created.', () => {
     it('all messages should be return as type array.', async () => {
       expect.hasAssertions();
       const data = await apiFetcher.getAll('messages');
@@ -70,11 +69,11 @@ describe('message test.', () => {
     it('delete all 3 message', async () => {
       expect.hasAssertions();
       const message0 = await apiFetcher.delete('messages', idOfMessages[0]);
-      expect(message0.msg).toStrictEqual('Mensajes eliminados exitosamente.');
+      expect(message0.msg).toStrictEqual('Mensaje eliminado exitosamente.');
       const message1 = await apiFetcher.delete('messages', idOfMessages[1]);
-      expect(message1.msg).toStrictEqual('Mensajes eliminados exitosamente.');
+      expect(message1.msg).toStrictEqual('Mensaje eliminado exitosamente.');
       const message2 = await apiFetcher.delete('messages', idOfMessages[2]);
-      expect(message2.msg).toStrictEqual('Mensajes eliminados exitosamente.');
+      expect(message2.msg).toStrictEqual('Mensaje eliminado exitosamente.');
     });
   });
   describe('delete Pepito and Maria from the users database.', () => {
