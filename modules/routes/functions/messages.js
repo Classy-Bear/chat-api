@@ -50,7 +50,7 @@ async function getMessageByID(req, res) {
     const messages = await Messages.findOne({
       where: { chatMessageUuid: id },
     });
-    if (!messages) {
+    if (messages.length === 0) {
       return res.status(404).json({ msg: 'El mensaje no existe.', id });
     }
     const {
@@ -87,7 +87,7 @@ async function getMessagesFromSenderToReceiver(req, res) {
       where: { chatMessageSender: sender, chatMessageReceiver: receiver },
       order: [['chatMessageSendDate', 'ASC']],
     });
-    if (!messages) {
+    if (messages.length === 0) {
       return res.status(404).json({
         msg:
           'Este usuario no ha enviado mensajes o han sido reconocidos por el <sender>.',
@@ -117,7 +117,7 @@ async function getMessagesFromSender(req, res) {
       where: { id },
       order: [['chatMessageSendDate', 'ASC']],
     });
-    if (!messages) {
+    if (messages.length === 0) {
       return res.status(404).json({
         msg:
           'Este usuario no ha enviado mensajes o han sido reconocidos por el <sender>.',
