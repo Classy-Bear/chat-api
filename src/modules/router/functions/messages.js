@@ -81,19 +81,13 @@ async function getMessageByID(req, res) {
     if (message.length === 0) {
       return res.status(404).json({ msg: 'El mensaje no existe.', id });
     }
-    const {
-      chatMessageUuid,
-      chatMessageMessage,
-      chatMessageSender,
-      chatMessageReceiver,
-      chatMessageSendDate,
-    } = message[0].dataValues;
+    const data = message[0].dataValues;
     return res.json({
-      id: chatMessageUuid,
-      message: chatMessageMessage,
-      sender: chatMessageSender,
-      receiver: chatMessageReceiver,
-      sendDate: chatMessageSendDate,
+      id: data.chatMessageUuid,
+      message: data.chatMessageMessage,
+      sender: data.chatMessageSender,
+      receiver: data.chatMessageReceiver,
+      sendDate: data.chatMessageSendDate,
     });
   } catch (err) {
     return error(res, err);

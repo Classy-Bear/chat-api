@@ -1,15 +1,13 @@
 const { Sequelize } = require('sequelize');
 
-/** @module socket_events*/
+/** @module databaseConfig */
 
 /**
  * Database URI
- * @example
- * postgres://user:pass@example.com:5432/dbname
  * @private
  * @type {string}
  */
-const database = process.env.DATABASE_URL || 'postgres://david@localhost:5432/pruebas';
+const database = process.env.DATABASE_URL;
 /**
  * Database timestamps
  *
@@ -41,21 +39,30 @@ const freezeTableName = true;
 /**
  * Sequelize options
  *
- * An object with options.
+ * An object with options. Contains all the Sequelize options that the
+ * Sequelize instance need.
  * @private
  * @type {Object}
  */
+/**
+ * Character set of the database.
+ *
+ * This let's @{link external:Sequelize:Sequelize} handle emojis.
+ * @type {String}
+ * @private
+ */
+const charset = 'utf8mb4';
+
 const options = {
   define: {
     timestamps,
     underscored,
     freezeTableName,
+    charset,
   },
 };
 
 /**
- * Exports a {@link external:Sequelize|Sequelize} instance
- *
- * @see {@link external:Sequelize|Sequelize}
+ * Exports a {@link external:Sequelize|Sequelize} instance.
  */
 module.exports = new Sequelize(database, options);
