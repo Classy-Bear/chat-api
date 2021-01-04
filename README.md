@@ -34,3 +34,9 @@ de postgres, si quiere saber que otros comandos hay, ejecute ``\?``.
 otra terminal corra ``npm run test``. Asegúrese de que las pruebas pasen
 correctamente. Este API supone que el usuario y la base de datos son llamados
 _postgres_, sino es así cambie la URL en ``./src/modules/config/databse.js``.
+
+3 - Debe utilizar un servicio de plataforma en la nube para ejecutar la API
+localmente, por ejemplo Heroku. El servicio de plataforma en la nube es
+necesario porque esta API usa config vars. [Aquí](https://devcenter.heroku.com/articles/getting-started-with-nodejs#run-the-app-locally)
+dice cómo hacerlo con Heroku, si no desea utilizar ningun servicio de plataforma
+en la nube servicio use el paquete [dotenv](https://www.npmjs.com/package/dotenv).

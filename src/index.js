@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const chalk = require('chalk');
 const databaseConfig = require('./modules/config/databse');
 const { userAPI, messageAPI } = require('./modules/router/router');
 
@@ -16,7 +17,9 @@ const { userAPI, messageAPI } = require('./modules/router/router');
 (async () => {
   try {
     await databaseConfig.authenticate();
-  } catch {
+  } catch (e) {
+    console.log(chalk.red('Failed to authenticate the database'));
+    console.log(chalk.bgRed(e));
     return;
   }
   const port = process.env.PORT || 5000;

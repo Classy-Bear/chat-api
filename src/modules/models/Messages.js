@@ -30,8 +30,11 @@ module.exports = databaseConfig.define('chat_message', {
     allowNull: false,
   },
   chatMessageSendDate: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  chatMessageDateOffset: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
 });

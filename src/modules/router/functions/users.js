@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const userModel = require('../../models/Users');
 const databseConfig = require('../../config/databse');
 
@@ -11,9 +12,13 @@ const databseConfig = require('../../config/databse');
  * @return {Object} A JSON formatted with the err given.
  * @private
  */
-const error = (res, err) => res
-  .status(500)
-  .json({ msg: 'Ha ocurrido un error en la base de datos.', err });
+const error = (res, err) => {
+  console.log(chalk.red('Error'));
+  console.log(chalk.bgRed(err));
+  res
+    .status(500)
+    .json({ msg: 'Ha ocurrido un error en la base de datos.', err });
+};
 
 /**
  * Get all the users from the database.
@@ -25,13 +30,13 @@ const error = (res, err) => res
  * @return {Object} A JSON Object with an error (if failure) or an Array of
  * users (if success).
  */
-async function getUsers(req, res) {
+const getUsers = async (req, res) => {
   try {
     const users = await userModel.findAll();
     const userArray = [];
     users.forEach((user) => {
       userArray.push({
-        uuid: user.chatUserUuid,
+        id: user.chatUserUuid,
         user: user.chatUserUser,
       });
     });
@@ -39,7 +44,7 @@ async function getUsers(req, res) {
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Get an user by ID from the database.
@@ -51,7 +56,7 @@ async function getUsers(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with the user
  * (if success).
  */
-async function getUserByID(req, res) {
+const getUserByID = async (req, res) => {
   const { id } = req.params;
   try {
     const user = await databseConfig.query(
@@ -68,7 +73,7 @@ async function getUserByID(req, res) {
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Creates an user and insert it into the database.
@@ -80,7 +85,7 @@ async function getUserByID(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with the
  * created user (if success).
  */
-async function createUser(req, res) {
+const createUser = async (req, res) => {
   const { user } = req.body;
   if (!user) {
     return res.status(400).json({
@@ -102,7 +107,7 @@ async function createUser(req, res) {
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Updates an user from the database.
@@ -114,7 +119,7 @@ async function createUser(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with the
  * created user (if success).
  */
-async function updateUser(req, res) {
+const updateUser = async (req, res) => {
   const { id, newUser } = req.body;
   if (!id || !newUser) {
     return res.status(400).json({
@@ -142,7 +147,7 @@ async function updateUser(req, res) {
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Deletes an user from the database.
@@ -154,7 +159,7 @@ async function updateUser(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with the
  * deleted user id (if success).
  */
-async function deleteUser(req, res) {
+const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
     const user = await databseConfig.query(
@@ -171,7 +176,7 @@ async function deleteUser(req, res) {
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Contains a object with all this methods.

@@ -1,27 +1,61 @@
+const chalk = require('chalk');
 const messageModel = require('../../models/Messages');
+const userModel = require('../../models/Users');
 const databseConfig = require('../../config/databse');
 
 /** @module messageFunctions */
 
 /**
- * Formats an Array of message for the API consumer.
+ * Formats a message.
  *
  * @param {Array} messages - The returned messages from the database.
  * @return {Array} The same Array formatted.
  * @private
  */
-const buildMessageArray = (messages) => {
+const buildMessage = async (message) => {
+  // Fetch receiver and sender
+  const sender = await databseConfig.query(
+    `SELECT * FROM chat_user WHERE chat_user_uuid::text = '${message.chatMessageSender}' LIMIT 1`, {
+      model: userModel,
+      mapToModel: true,
+    },
+  );
+  const receiver = await databseConfig.query(
+    `SELECT * FROM chat_user WHERE chat_user_uuid::text = '${message.chatMessageReceiver}' LIMIT 1`, {
+      model: userModel,
+      mapToModel: true,
+    },
+  );
+  return {
+    id: message.chatMessageUuid,
+    text: message.chatMessageMessage,
+    sender: {
+      sender_id: sender[0].dataValues.chatUserUuid,
+      sender_name: sender[0].dataValues.chatUserUser,
+    },
+    receiver: {
+      receiver_id: receiver[0].dataValues.chatUserUuid,
+      receiver_name: receiver[0].dataValues.chatUserUser,
+    },
+    sendDate: message.chatMessageSendDate,
+    dateOffset: message.chatMessageDateOffset,
+  };
+};
+
+/**
+ * Formats an Array of message.
+ *
+ * @param {Array} messages - The returned messages from the database.
+ * @return {Array} The same Array formatted.
+ * @private
+ */
+const buildMessageArray = async (messages) => {
   const messageArray = [];
-  messages.forEach((m) => {
+  await Promise.all(messages.map(async (m) => {
     const row = m.dataValues;
-    messageArray.push({
-      uuid: row.chatMessageUuid,
-      message: row.chatMessageMessage,
-      sender: row.chatMessageSender,
-      receiver: row.chatMessageReceiver,
-      sendDate: row.chatMessageSendDate,
-    });
-  });
+    const message = await buildMessage(row);
+    messageArray.push(message);
+  }));
   return messageArray;
 };
 
@@ -33,9 +67,13 @@ const buildMessageArray = (messages) => {
  * @return {Object} A JSON formatted with the err given.
  * @private
  */
-const error = (res, err) => res
-  .status(500)
-  .json({ msg: 'Ha ocurrido un error en la base de datos.', err });
+const error = (res, err) => {
+  console.log(chalk.red('Error'));
+  console.log(chalk.bgRed(err));
+  res
+    .status(500)
+    .json({ msg: 'Ha ocurrido un error en la base de datos.', err });
+};
 
 /**
  * Get all the messages from the database.
@@ -47,17 +85,17 @@ const error = (res, err) => res
  * @return {Object} A JSON Object with an error (if failure) or an Array of
  * messages (if success).
  */
-async function getMessages(req, res) {
+const getMessages = async (req, res) => {
   try {
     const messages = await messageModel.findAll({
       order: [['chatMessageSendDate', 'ASC']],
     });
-    const messageArray = buildMessageArray(messages);
+    const messageArray = await buildMessageArray(messages);
     return res.json(messageArray);
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Get a message by id from the database.
@@ -69,7 +107,7 @@ async function getMessages(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with a messages
  * (if success).
  */
-async function getMessageByID(req, res) {
+const getMessageByID = async (req, res) => {
   const { id } = req.params;
   try {
     const message = await databseConfig.query(
@@ -82,17 +120,11 @@ async function getMessageByID(req, res) {
       return res.status(404).json({ msg: 'El mensaje no existe.', id });
     }
     const data = message[0].dataValues;
-    return res.json({
-      id: data.chatMessageUuid,
-      message: data.chatMessageMessage,
-      sender: data.chatMessageSender,
-      receiver: data.chatMessageReceiver,
-      sendDate: data.chatMessageSendDate,
-    });
+    return res.json(await buildMessage(data));
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Get all the messages from a sender to a receiver.
@@ -104,7 +136,7 @@ async function getMessageByID(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with an Array of
  * messages (if success).
  */
-async function getMessagesFromSenderToReceiver(req, res) {
+const getMessagesFromSenderToReceiver = async (req, res) => {
   const { sender, receiver } = req.params;
   if (!sender || !receiver) {
     return res.status(400).json({
@@ -123,12 +155,12 @@ async function getMessagesFromSenderToReceiver(req, res) {
         msg: 'Este usuario no ha enviado mensajes a este receptor.',
       });
     }
-    const messageArray = buildMessageArray(messages);
+    const messageArray = await buildMessageArray(messages);
     return res.json(messageArray);
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Get all the messages from a sender without specifying the receiver.
@@ -140,7 +172,7 @@ async function getMessagesFromSenderToReceiver(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with an Array of
  * messages (if success).
  */
-async function getMessagesFromSender(req, res) {
+const getMessagesFromSender = async (req, res) => {
   const { id } = req.params;
   try {
     const messages = await messageModel.findAll({
@@ -153,12 +185,12 @@ async function getMessagesFromSender(req, res) {
           'Este usuario no ha enviado mensajes.',
       });
     }
-    const messageArray = buildMessageArray(messages);
+    const messageArray = await buildMessageArray(messages);
     return res.json(messageArray);
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Creates a message from a sender to a receiver.
@@ -170,14 +202,18 @@ async function getMessagesFromSender(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with the
  * created message (if success).
  */
-async function createMessage(req, res) {
-  const { message, sender, receiver } = req.body;
-  if (!message || !sender || !receiver) {
+const createMessage = async (req, res) => {
+  const {
+    message, sender, receiver, sendDate, dateOffset,
+  } = req.body;
+  if (!message || !sender || !receiver || !sendDate || !dateOffset) {
     return res.status(400).json({
       msg: 'No se han proporcionaron todos los campos.',
       message,
       sender,
       receiver,
+      sendDate,
+      dateOffset,
     });
   }
   try {
@@ -186,21 +222,18 @@ async function createMessage(req, res) {
         chatMessageMessage: message,
         chatMessageSender: sender,
         chatMessageReceiver: receiver,
+        chatMessageSendDate: sendDate,
+        chatMessageDateOffset: dateOffset,
       },
       { returning: true, plain: true },
     );
-    return res.status(201).json({
-      msg: 'Creado con éxito.',
-      id: query.chatMessageUuid,
-      message: query.chatMessageMessage,
-      sender: query.chatMessageSender,
-      receiver: query.chatMessageReceiver,
-      date: query.chatMessageSendDate,
-    });
+    const messageCreated = await buildMessage(query);
+    messageCreated.msg = 'Creado con éxito';
+    return res.status(201).json(messageCreated);
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Deletes a message with the specified ID.
@@ -212,7 +245,7 @@ async function createMessage(req, res) {
  * @return {Object} A JSON Object with an error (if failure) or with the
  * message ID (if success).
  */
-async function deleteMessage(req, res) {
+const deleteMessage = async (req, res) => {
   const { id } = req.params;
   try {
     const message = await databseConfig.query(
@@ -229,7 +262,7 @@ async function deleteMessage(req, res) {
   } catch (err) {
     return error(res, err);
   }
-}
+};
 
 /**
  * Contains a object with all this methods.
